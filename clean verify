@@ -1,0 +1,55 @@
+
+# CleanVerify — Pro Starter (Monochrome)
+Stack: **Vercel (Next.js)** + **Cloudflare Workers** + **Supabase (DB/Auth/Storage)** + **OpenAI Vision** + **PDF export**
+
+## What’s included
+- **/web** — Next.js App (App Router) + Tailwind (black/white professional UI)
+  - `/auth` — Magic link sign-in (assign roles in `app_user`)
+  - `/vendor/job/[id]` — Guided upload: BEFORE/AFTER, required photo blocking, AI Coach, AI Diff
+  - `/manager/jobs` — List
+  - `/manager/jobs/[id]` — Review with Approve/Rework, comments/ratings, **PDF export**
+- **/worker** — Cloudflare Worker with:
+  - `POST /ai/review` → single-photo AI feedback
+  - `POST /ai/diff` → before vs after AI summary
+- **supabase.sql** — DB schema with RLS policies
+
+## Setup
+
+### 1) Supabase
+- Create project → SQL Editor → run `supabase.sql`
+- Create **Storage bucket**: `job-media` (or change env)
+- Get **Project URL** and **anon key**
+- (Optional) Insert sample data for properties, units, template, items, jobs. Assign roles in `app_user`.
+
+### 2) Cloudflare Worker
+- Deploy `/worker` (via dashboard or `wrangler deploy`)
+- Set secret var: `OPENAI_API_KEY`
+- Copy Worker URL, e.g. `https://cleanverify-worker-pro.<sub>.workers.dev`
+
+### 3) Web
+```
+cd web
+npm i
+# .env.local
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_SUPABASE_BUCKET=job-media
+NEXT_PUBLIC_WORKER_URL=https://cleanverify-worker-pro.<sub>.workers.dev
+npm run dev
+```
+Open `http://localhost:3000`.
+
+### 4) Deploy Web to Vercel
+- Import repo → add same env vars → deploy
+
+## Notes
+- **Roles:** After a user signs in, create a row in `app_user` (id = auth user id, set role: vendor/manager).
+- **Required Photos:** Vendor submission is blocked until all required items have AFTER photos.
+- **PDF:** Client-side jsPDF; includes side-by-side before/after images per item.
+- **AI:** Uses OpenAI Vision via Worker; URLs must be public (Supabase public URL used here).
+
+## Roadmap
+- Replace demo routes with company-scoped queries and role checks
+- Manager assignment UI (assign vendors, due dates)
+- Tenant feedback portal
+- Email notifications
